@@ -1,0 +1,37 @@
+apiVersion: apps/v1  # 이 리소스가 속한 API 그룹 및 버전 (여기서는 apps/v1 그룹에서 Deployment를 정의)
+kind: Deployment  # 리소스 종류. 이 경우 Kubernetes의 Deployment를 나타냄
+metadata:
+  name: catalogdetail  # 이 Deployment의 이름
+  namespace: {{ .Release.Namespace }}  # 이 Deployment가 속한 네임스페이스. 네임스페이스를 통해 리소스를 격리
+spec:
+  replicas: 1  # 실행할 파드 수. 여기서는 1개의 파드만 실행
+  selector:  # 이 Deployment가 관리하는 파드를 선택하는 라벨 셀렉터
+    matchLabels:
+      app: catalogdetail  # 'app' 라벨이 'catalogdetail'인 파드를 선택
+      version: v1  # 'version' 라벨이 'v1'인 파드를 선택
+  template:  # 파드를 생성할 때 사용할 템플릿 정의
+    metadata:
+      labels:
+        app: catalogdetail  # 생성된 파드에 'app=catalogdetail' 라벨을 추가
+        version: v1  # 생성된 파드에 'version=v1' 라벨을 추가
+    spec:
+      serviceAccountName: catalogdetail-sa  # 이 파드가 사용할 서비스 계정
+      containers:
+        - name: catalogdetail  # 컨테이너 이름
+          image: "{{ .Values.catalogdetail1.image.repository }}:{{ .Values.catalogdetail1.image.tag }}"  # 사용할 컨테이너 이미지 (AWS ECR에서 가져옴)
+          imagePullPolicy: Always  # 이미지를 항상 풀(Pull)하여 최신 상태를 유지
+          livenessProbe:  # 컨테이너가 정상적으로 동작하는지 확인하는 liveness 프로브 설정
+            httpGet:
+              path: /ping  # HTTP GET 요청을 통해 '/ping' 엔드포인트로 확인
+              port: 3000  # 3000번 포트에서 확인
+            initialDelaySeconds: 0  # 파드 시작 후 바로 liveness 프로브를 실행 (지연 시간 없음)
+            periodSeconds: 10  # 10초마다 프로브 실행
+            timeoutSeconds: 1  # 1초 이내에 응답하지 않으면 실패로 간주
+            failureThreshold: 3  # 연속 3번 실패하면 컨테이너를 재시작
+          readinessProbe:  # 컨테이너가 트래픽을 받을 준비가 되었는지 확인하는 readiness 프로브 설정
+            httpGet:
+              path: /ping  # HTTP GET 요청을 통해 '/ping' 엔드포인트로 확인
+              port: 3000  # 3000번 포트에서 확인
+            successThreshold: 3  # 연속 3번 성공해야 준비 상태로 간주
+          ports:
+            - containerPort: 3000  # 컨테이너가 사용하는 포트 (3000번)

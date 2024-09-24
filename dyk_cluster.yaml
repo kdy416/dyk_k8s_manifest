@@ -1,0 +1,68 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: dyk-test-cluster # 클러스터 이름 
+  region: ap-northeast-2
+  version: "1.30" # K8s 버전 지정
+vpc:
+  subnets:
+    private:
+      ap-northeast-2a: # 서브넷 필드 이름 지정 (임의의 이름 지정 가능)
+        id: subnet-063b83fe8b9b65341 # 서브넷 ID
+      ap-northeast-2c:
+        id: subnet-054a8df46f572cf62
+#    public:
+managedNodeGroups: # 관리형 노드그룹 
+# - name: dyk-eks-ng # 노드그룹 이름 지정
+#   tags: {
+#     "Name": "dyk-eks-ng"
+#   }
+#   labels: # 노드그룹 지정 배포 시 레이블 생성
+#     project: dyk-app
+#   privateNetworking: true # Private 서브넷 사용시 필수 필드 (NAT필요)
+#   instanceType: t3.small # 인스턴스 유형 선택
+#   desiredCapacity: 2 # WorkerNode 원하는 용량
+#   maxSize: 5
+#   volumeSize: 20
+#   volumeType: gp3
+#   # volumeEncrypted: true
+#   # volumeKmsKeyID: "arn:aws:kms:ap-northeast-2:094764574190:key/85221790-6043-41b9-b6b7-b78cad6e21b8"
+#   # subnets: # WorkerNode에서 사용할 위 VPC 필드에 명시한 서브넷 지정
+#   #   - ap-northeast-2a
+#   #   - ap-northeast-2b
+#   ssh:
+#     publicKeyName: dyk_seoul_key # EC2내 관리중인 키페어 이름 지정
+# #   enableSsm: true 
+#   iam:
+#     withAddonPolicies:
+#       imageBuilder: true
+#       autoScaler: true
+#       cloudWatch: true
+      
+- name: dyk-eks-spot # 노드그룹 이름 지정
+  tags: {
+    "Name": "dyk-eks-ng"
+  }
+  labels: # 노드그룹 지정 배포 시 레이블 생성
+    project: dyk-app
+  privateNetworking: true # Private 서브넷 사용시 필수 필드 (NAT필요)
+  spot: true # Spot 인스턴스 활성화
+  instanceTypes: ["t3.micro","t3.small","t3.medium"] # 인스턴스 유형 선택
+  desiredCapacity: 2 # WorkerNode 원하는 용량
+  maxSize: 5
+  volumeSize: 20
+  volumeType: gp3
+  # volumeEncrypted: true
+  # volumeKmsKeyID: "arn:aws:kms:ap-northeast-2:094764574190:key/85221790-6043-41b9-b6b7-b78cad6e21b8"
+  # subnets: # WorkerNode에서 사용할 위 VPC 필드에 명시한 서브넷 지정
+  #   - ap-northeast-2a
+  #   - ap-northeast-2b
+  ssh:
+    publicKeyName: dyk_seoul_key # EC2내 관리중인 키페어 이름 지정
+#   enableSsm: true 
+  iam:
+    withAddonPolicies:
+      imageBuilder: true
+      autoScaler: true
+      cloudWatch: true
+      
